@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(robotiq_gripper_controller)
+project(robotiq_gripper_interfaces)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -7,19 +7,15 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(robotiq_gripper_interfaces REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
-
-add_executable(robotiq_gripper_controller src/main_node.cpp)
-ament_target_dependencies(robotiq_gripper_controller robotiq_gripper_interfaces rclcpp)
-target_link_libraries(robotiq_gripper_controller
-  modbus
-)
-
-install(TARGETS
-  robotiq_gripper_controller
-  DESTINATION lib/${PROJECT_NAME}
+rosidl_generate_interfaces(
+  ${PROJECT_NAME}
+  "msg/GripperStatus.msg"
+  "msg/GripperCommand.msg"
+  DEPENDENCIES std_msgs
 )
 
 if(BUILD_TESTING)
