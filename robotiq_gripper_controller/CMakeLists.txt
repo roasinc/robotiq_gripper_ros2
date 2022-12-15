@@ -9,10 +9,11 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(robotiq_gripper_interfaces REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 
 add_executable(robotiq_gripper_controller src/main_node.cpp)
-ament_target_dependencies(robotiq_gripper_controller robotiq_gripper_interfaces rclcpp)
+ament_target_dependencies(robotiq_gripper_controller robotiq_gripper_interfaces sensor_msgs rclcpp)
 target_link_libraries(robotiq_gripper_controller
   modbus
 )

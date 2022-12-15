@@ -2,6 +2,7 @@
 #include <modbus/modbus.h>
 #include "robotiq_gripper_interfaces/msg/gripper_status.hpp"
 #include "robotiq_gripper_interfaces/msg/gripper_command.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
@@ -36,6 +37,7 @@ class RobotiqGripperController: public rclcpp::Node
             sub_gripper_command_ = this->create_subscription<robotiq_gripper_interfaces::msg::GripperCommand>(
                 "gripper_command", 10, std::bind(&RobotiqGripperController::gripper_command_callback, this, _1));
             pub_gripper_status_ = this->create_publisher<robotiq_gripper_interfaces::msg::GripperStatus>("gripper_status", 10);
+            pub_joint_states_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
 
             auto period = std::chrono::duration<double>(1.0 / this->get_parameter("rate").as_double());
             timer_ = this->create_wall_timer(period, std::bind(&RobotiqGripperController::timer_callback, this));
@@ -74,6 +76,15 @@ class RobotiqGripperController: public rclcpp::Node
             msg.g_cu = (uint8_t)(recv_registers[2]) & 0xFF;
 
             pub_gripper_status_->publish(msg);
+
+            auto js_msg = sensor_msgs::msg::JointState();
+            js_msg.header.stamp = this->get_clock()->now();
+            js_msg.name.push_back("gripper_finger_joint");
+            js_msg.position.push_back(msg.g_po / 255.0);
+            js_msg.velocity.push_back(0.0);
+            js_msg.effort.push_back(msg.g_cu / 255.0);
+
+            pub_joint_states_->publish(js_msg);
         }
 
         void gripper_command_callback(const robotiq_gripper_interfaces::msg::GripperCommand::SharedPtr msg)
@@ -110,6 +121,7 @@ class RobotiqGripperController: public rclcpp::Node
         uint8_t req_gripper_force_;
 
         rclcpp::Publisher<robotiq_gripper_interfaces::msg::GripperStatus>::SharedPtr pub_gripper_status_;
+        rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr pub_joint_states_;
         rclcpp::Subscription<robotiq_gripper_interfaces::msg::GripperCommand>::SharedPtr sub_gripper_command_;
 };
 
