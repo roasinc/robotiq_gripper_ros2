@@ -34,6 +34,10 @@ class RobotiqGripperController: public rclcpp::Node
                 assert(false);
             }
 
+            uint16_t initial_registers[3] = { 0x0800, 0x0000, 0x0000 };
+            modbus_write_registers(modbus_, 0x3E8, 3, initial_registers);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
             sub_gripper_command_ = this->create_subscription<robotiq_gripper_interfaces::msg::GripperCommand>(
                 "gripper_command", 10, std::bind(&RobotiqGripperController::gripper_command_callback, this, _1));
             pub_gripper_status_ = this->create_publisher<robotiq_gripper_interfaces::msg::GripperStatus>("gripper_status", 10);
